@@ -1,0 +1,23 @@
+{
+	"name": "exinfinite/jsonld",
+	"description": "render jsonld",
+	"version": "1.0.0",
+	"type": "library",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Exinfinite Chen",
+			"email": "chen.min.home@gmail.com",
+			"role": "Developer"
+		}
+	],
+	"minimum-stability": "stable",
+	"autoload": {
+		"psr-4": {
+			"Exinfinite\\": "src/"
+		}
+	},
+	"require": {
+		"php": ">=5.6"
+	}
+}
