@@ -1,35 +1,43 @@
 <?php
 namespace Exinfinite;
 class Jsonld {
-    private $tpl = "<script type='application/ld+json'>%s</script>";
-    private $json = [];
-    function __construct($site_name, $site_url, $site_logo = '') {
+    protected $tpl = '<script type="application/ld+json">%s</script>';
+    protected $json = [];
+    protected $context = "http://schema.org";
+    protected $timezone = "Asia/Taipei";
+    public function __construct($site_name, $site_url, $site_logo) {
         $this->site_name = $site_name;
         $this->site_url = $site_url;
         $this->site_logo = $site_logo;
         $this->website();
         $this->organization();
     }
-    function website() {
-        $this->json['website'] = [
-            "@context" => "http://schema.org",
+    public function setTimezone($timezone) {
+        $this->timezone = $timezone;
+    }
+    protected function push($key, $data) {
+        $this->json[$key] = $data;
+    }
+    public function website() {
+        $this->push('website', [
+            "@context" => $this->context,
             "@type" => "WebSite",
             "name" => "{$this->site_name}",
             "url" => "{$this->site_url}",
-        ];
+        ]);
     }
-    function organization() {
-        $this->json['organization'] = [
-            "@context" => "http://schema.org",
+    public function organization() {
+        $this->push('organization', [
+            "@context" => $this->context,
             "@type" => "Organization",
             "url" => "{$this->site_url}",
             "logo" => "{$this->site_logo}",
-        ];
+        ]);
     }
-    function breadcrumb($item_list = []) {
+    public function breadcrumb($item_list = []) {
         $json_key = 'breadcrumb';
         if (!array_key_exists($json_key, $this->json) || !is_array($this->json[$json_key])) {
-            $this->json[$json_key] = [];
+            $this->push($json_key, []);
         }
         $idx = 1;
         $item_list_tmp = [];
@@ -47,18 +55,18 @@ class Jsonld {
         foreach ($item_list as $url => $name) {
             $list_item(++$idx, $url, $name);
         }
-        array_push($this->json[$json_key], [
-            "@context" => "http://schema.org",
+        $this->push($json_key, [
+            "@context" => $this->context,
             "@type" => "BreadcrumbList",
             "itemListElement" => $item_list_tmp,
         ]);
     }
-    function search($uri, $param) {
+    public function search($uri, $param) {
         if (!is_string($param) || trim($param) == '') {
             return;
         }
-        $this->json['search'] = [
-            "@context" => "http://schema.org",
+        $this->push('search', [
+            "@context" => $this->context,
             "@type" => "WebSite",
             "url" => "{$this->site_url}",
             "potentialAction" => [
@@ -66,9 +74,20 @@ class Jsonld {
                 "target" => implode('?', [$uri, "{$param}={{$param}}"]),
                 "query-input" => "required name={$param}",
             ],
-        ];
+        ]);
     }
-    function render() {
+    public function article($title, array $images, $publish_date, $modified_date) {
+        $timezone = new \DateTimeZone($this->timezone);
+        $this->push('article', [
+            "@context" => $this->context,
+            "@type" => "NewsArticle",
+            "headline" => $title,
+            "image" => $images,
+            "datePublished" => (new \DateTime($publish_date))->setTimezone($timezone)->format('c'),
+            "dateModified" => (new \DateTime($modified_date))->setTimezone($timezone)->format('c'),
+        ]);
+    }
+    public function render() {
         echo implode("\n",
             array_reduce($this->json, function ($container, $context) {
                 array_push($container, sprintf($this->tpl, json_encode($context, JSON_UNESCAPED_UNICODE)));
