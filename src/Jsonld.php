@@ -76,12 +76,13 @@ class Jsonld {
             ],
         ]);
     }
-    public function article($title, array $images, $publish_date, $modified_date) {
+    public function article($title, $description, array $images, $publish_date, $modified_date) {
         $timezone = new \DateTimeZone($this->timezone);
         $this->push('article', [
             "@context" => $this->context,
             "@type" => "NewsArticle",
             "headline" => $title,
+            "description" => $description,
             "image" => $images,
             "datePublished" => (new \DateTime($publish_date))->setTimezone($timezone)->format('c'),
             "dateModified" => (new \DateTime($modified_date))->setTimezone($timezone)->format('c'),
@@ -90,7 +91,7 @@ class Jsonld {
     public function render() {
         echo implode("\n",
             array_reduce($this->json, function ($container, $context) {
-                array_push($container, sprintf($this->tpl, json_encode($context, JSON_UNESCAPED_UNICODE)));
+                array_push($container, sprintf($this->tpl, json_encode($context)));
                 return $container;
             }, [])
         );
