@@ -35,7 +35,7 @@ class Jsonld {
         ]);
     }
     public function breadcrumb($item_list = []) {
-        $json_key = 'breadcrumb';
+        $json_key = 'breadcrumb' . md5(serialize($item_list));
         if (!array_key_exists($json_key, $this->json) || !is_array($this->json[$json_key])) {
             $this->push($json_key, []);
         }
